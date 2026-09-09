@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { studioInfo } from '../../data/studioInfo';
-import { Phone, Mail, MapPin, Send, CheckCircle2, MessageSquare } from 'lucide-react';
+import { Phone, Mail, MapPin, Send, CheckCircle2 } from 'lucide-react';
+import { WhatsAppIcon } from '../common/Icons';
 import confetti from 'canvas-confetti';
 
 export const Contact: React.FC = () => {
@@ -38,7 +39,7 @@ export const Contact: React.FC = () => {
     const text = encodeURIComponent(
       `Hello Preet Cinematography, I would like to inquire about booking.\n\nName: ${formData.name || 'Client'}\nEvent: ${formData.eventType}\nDate: ${formData.eventDate || 'TBD'}\nLocation: ${formData.location || 'Punjab'}\nNote: ${formData.message || 'Please share availability and packages.'}`
     );
-    return `https://wa.me/919988389012?text=${text}`;
+    return `https://wa.me/919729371307?text=${text}`;
   };
 
   return (
@@ -67,6 +68,25 @@ export const Contact: React.FC = () => {
             {/* Direct Details Cards */}
             <div className="space-y-4 pt-4">
               <a
+                href={studioInfo.phoneTel}
+                className="flex items-center gap-4 p-4 rounded-xl bg-[#FAF8F3] border border-[#D9D3C8] hover:border-[#B99A67] hover:bg-white transition-all group shadow-sm"
+                data-cursor="open"
+                data-cursor-label="CALL"
+              >
+                <div className="w-10 h-10 rounded-full bg-[#B99A67]/15 text-[#B99A67] flex items-center justify-center group-hover:bg-[#B99A67] group-hover:text-white transition-colors">
+                  <Phone className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono text-[#6F6A61] uppercase tracking-widest block font-medium">
+                    Call Direct
+                  </span>
+                  <span className="text-sm font-mono text-[#171614] group-hover:text-[#B99A67] transition-colors font-medium">
+                    {studioInfo.phone}
+                  </span>
+                </div>
+              </a>
+
+              <a
                 href={studioInfo.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -75,14 +95,14 @@ export const Contact: React.FC = () => {
                 data-cursor-label="WHATSAPP"
               >
                 <div className="w-10 h-10 rounded-full bg-[#B99A67]/15 text-[#B99A67] flex items-center justify-center group-hover:bg-[#B99A67] group-hover:text-white transition-colors">
-                  <Phone className="w-4 h-4" />
+                  <WhatsAppIcon className="w-4 h-4" />
                 </div>
                 <div>
                   <span className="text-[10px] font-mono text-[#6F6A61] uppercase tracking-widest block font-medium">
-                    Phone & WhatsApp Direct
+                    WhatsApp Chat
                   </span>
                   <span className="text-sm font-mono text-[#171614] group-hover:text-[#B99A67] transition-colors font-medium">
-                    {studioInfo.phone}
+                    Connect on WhatsApp
                   </span>
                 </div>
               </a>
@@ -138,8 +158,8 @@ export const Contact: React.FC = () => {
                     rel="noopener noreferrer"
                     className="px-6 py-3 rounded-full bg-[#B99A67] text-white text-xs font-semibold uppercase tracking-wider flex items-center gap-2 shadow-md hover:bg-[#A38350] transition-colors"
                   >
-                    <MessageSquare className="w-4 h-4" />
-                    <span>Send via WhatsApp Now</span>
+                    <WhatsAppIcon className="w-4 h-4" />
+                    <span>Connect on WhatsApp</span>
                   </a>
                   <button
                     onClick={() => setSubmitted(false)}
@@ -179,7 +199,7 @@ export const Contact: React.FC = () => {
                       required
                       value={formData.phone}
                       onChange={handleChange}
-                      placeholder="+91 99883 89012"
+                      placeholder="+91 9729371307"
                       className="w-full bg-white border border-[#D9D3C8] rounded-xl px-4 py-3 text-sm text-[#171614] placeholder-[#6F6A61]/50 focus:outline-none focus:border-[#B99A67] transition-colors shadow-xs"
                     />
                   </div>
@@ -290,8 +310,8 @@ export const Contact: React.FC = () => {
                     data-cursor="open"
                     data-cursor-label="WHATSAPP"
                   >
-                    <MessageSquare className="w-4 h-4 text-[#B99A67]" />
-                    <span>Quick WhatsApp</span>
+                    <WhatsAppIcon className="w-4 h-4 text-[#B99A67]" />
+                    <span>Connect on WhatsApp</span>
                   </a>
                 </div>
               </form>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Menu, X, Phone, Sparkles } from 'lucide-react';
+import { WhatsAppIcon } from '../common/Icons';
 import { studioInfo } from '../../data/studioInfo';
 
 interface NavbarProps {
@@ -90,7 +91,21 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
           </nav>
 
           {/* Right Action Buttons */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-3">
+            <a
+              href={studioInfo.phoneTel}
+              className={`p-2.5 rounded-full border transition-all ${
+                isScrolled
+                  ? 'border-[#D9D3C8] text-[#6F6A61] hover:text-[#171614] hover:border-[#B99A67]'
+                  : 'border-white/20 text-white/80 hover:text-white hover:border-[#DEC5A3]'
+              }`}
+              title="Call Preet Cinematography"
+              data-cursor="open"
+              data-cursor-label="CALL"
+            >
+              <Phone className="w-3.5 h-3.5" />
+            </a>
+
             <a
               href={studioInfo.whatsappUrl}
               target="_blank"
@@ -100,11 +115,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
                   ? 'border-[#D9D3C8] text-[#6F6A61] hover:text-[#171614] hover:border-[#B99A67]'
                   : 'border-white/20 text-white/80 hover:text-white hover:border-[#DEC5A3]'
               }`}
-              title="Quick WhatsApp Chat"
+              title="Connect on WhatsApp"
               data-cursor="open"
-              data-cursor-label="CHAT"
+              data-cursor-label="WHATSAPP"
             >
-              <Phone className="w-3.5 h-3.5" />
+              <WhatsAppIcon className="w-3.5 h-3.5" />
             </a>
 
             <button
@@ -120,6 +135,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
 
           {/* Mobile Hamburger Button */}
           <div className="flex md:hidden items-center gap-3">
+            <a
+              href={studioInfo.phoneTel}
+              className="p-2 text-[#171614] border border-[#D9D3C8] rounded-full"
+              aria-label="Call Preet Cinematography"
+            >
+              <Phone className="w-3.5 h-3.5" />
+            </a>
+
             <button
               onClick={onOpenBooking}
               className="px-3.5 py-1.5 rounded-full bg-[#B99A67] text-white text-[11px] font-semibold tracking-wider"
@@ -162,9 +185,28 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
         </div>
 
         <div className="pt-8 border-t border-[#D9D3C8] space-y-4">
-          <p className="text-xs text-[#6F6A61] font-mono">
-            {studioInfo.phone} • {studioInfo.location}
-          </p>
+          <div className="flex flex-col gap-2.5">
+            <a
+              href={studioInfo.phoneTel}
+              className="text-xs text-[#171614] hover:text-[#B99A67] font-mono flex items-center gap-2 font-medium"
+            >
+              <Phone className="w-3.5 h-3.5 text-[#B99A67]" />
+              <span>Call: {studioInfo.phone}</span>
+            </a>
+            <a
+              href={studioInfo.whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[#B99A67] hover:underline font-mono flex items-center gap-2 font-medium"
+            >
+              <WhatsAppIcon className="w-3.5 h-3.5" />
+              <span>Connect on WhatsApp</span>
+            </a>
+            <span className="text-[11px] text-[#6F6A61] font-mono">
+              {studioInfo.location}
+            </span>
+          </div>
+
           <button
             onClick={() => {
               setMobileMenuOpen(false);

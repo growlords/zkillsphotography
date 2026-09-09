@@ -1,6 +1,6 @@
 import React from 'react';
 import { Phone, ArrowUp } from 'lucide-react';
-import { InstagramIcon, YoutubeIcon } from '../common/Icons';
+import { InstagramIcon, YoutubeIcon, WhatsAppIcon } from '../common/Icons';
 import { studioInfo } from '../../data/studioInfo';
 
 export const Footer: React.FC = () => {
@@ -67,24 +67,36 @@ export const Footer: React.FC = () => {
             <p className="text-sm text-[#6F6A61]">
               For bookings, destination dates, and collaboration:
             </p>
-            <p className="font-mono text-[#B99A67] text-base tracking-wider font-medium">
+            <a
+              href={studioInfo.phoneTel}
+              className="font-mono text-[#B99A67] text-base tracking-wider font-medium hover:underline inline-block"
+            >
               {studioInfo.phone}
-            </p>
+            </a>
             <p className="font-sans text-xs text-[#6F6A61]">
               {studioInfo.email}
             </p>
 
             <div className="flex items-center gap-3 pt-3">
               <a
+                href={studioInfo.phoneTel}
+                className="p-3 rounded-full bg-[#FAF8F3] hover:bg-[#B99A67] hover:text-white text-[#171614] transition-all duration-300 border border-[#D9D3C8] shadow-sm"
+                aria-label="Call Preet Cinematography"
+                data-cursor="open"
+                data-cursor-label="CALL"
+              >
+                <Phone className="w-4 h-4" />
+              </a>
+              <a
                 href={studioInfo.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-3 rounded-full bg-[#FAF8F3] hover:bg-[#B99A67] hover:text-white text-[#171614] transition-all duration-300 border border-[#D9D3C8] shadow-sm"
-                aria-label="WhatsApp Direct"
+                aria-label="Connect on WhatsApp"
                 data-cursor="open"
                 data-cursor-label="WHATSAPP"
               >
-                <Phone className="w-4 h-4" />
+                <WhatsAppIcon className="w-4 h-4" />
               </a>
               <a
                 href={studioInfo.instagramUrl}
