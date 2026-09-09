@@ -74,8 +74,8 @@ export const CustomCursor: React.FC = () => {
       <div
         className={`relative -top-1/2 -left-1/2 rounded-full flex items-center justify-center transition-all duration-300 ease-out border backdrop-blur-sm ${
           isExpanded
-            ? 'w-20 h-20 bg-champagne text-dark font-sans text-xs font-bold tracking-widest border-champagne shadow-2xl scale-100'
-            : 'w-4 h-4 bg-pearl/80 border-pearl/40 scale-100'
+            ? 'w-20 h-20 bg-[#B99A67] text-white font-sans text-xs font-bold tracking-widest border-[#B99A67] shadow-2xl scale-100'
+            : 'w-3.5 h-3.5 bg-[#171614] border border-white/60 shadow-sm scale-100'
         }`}
         style={{
           transform: 'translate(-50%, -50%)',

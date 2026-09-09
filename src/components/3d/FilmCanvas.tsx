@@ -13,6 +13,15 @@ export const FilmCanvas: React.FC = () => {
     const container = mountRef.current;
     if (!container) return;
 
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false });
+    } catch (e) {
+      // Gracefully exit if WebGL context is not supported or disabled
+      console.warn('WebGL is unavailable in this environment, skipping particle canvas:', e);
+      return;
+    }
+
     // Scene, Camera, Renderer
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -23,13 +32,12 @@ export const FilmCanvas: React.FC = () => {
     );
     camera.position.z = 50;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     container.appendChild(renderer.domElement);
 
     // Particle Geometry (Golden Cinematic Dust & Light Motes)
-    const particleCount = window.innerWidth < 768 ? 60 : 180;
+    const particleCount = window.innerWidth < 768 ? 50 : 140;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
     const scales = new Float32Array(particleCount);
@@ -44,13 +52,13 @@ export const FilmCanvas: React.FC = () => {
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('scale', new THREE.BufferAttribute(scales, 1));
 
-    // Particle Material
+    // Particle Material for Luxury Light Theme
     const material = new THREE.PointsMaterial({
-      color: 0xC6A87D, // Warm champagne gold
-      size: 1.2,
+      color: 0x9E8055, // Rich warm bronze / champagne dust motes
+      size: 1.3,
       transparent: true,
-      opacity: 0.35,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.22,
+      blending: THREE.NormalBlending,
     });
 
     const particles = new THREE.Points(geometry, material);
@@ -107,7 +115,7 @@ export const FilmCanvas: React.FC = () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('resize', onResize);
-      if (container && renderer.domElement) {
+      if (container && renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
       geometry.dispose();

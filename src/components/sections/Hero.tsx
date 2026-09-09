@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Volume2, VolumeX, ArrowDown, Play, Sparkles } from 'lucide-react';
+import { Volume2, VolumeX, ArrowDown, Play } from 'lucide-react';
 import { MagneticBtn } from '../common/MagneticBtn';
 
 interface HeroProps {
@@ -41,36 +41,39 @@ export const Hero: React.FC<HeroProps> = ({
         className="absolute inset-0 w-full h-full object-cover scale-[1.03] transition-transform duration-1000 ease-out"
       />
 
-      {/* Cinematic Multi-layered Vignette & Gradients */}
-      <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/40 to-dark/60 pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-r from-dark/80 via-transparent to-dark/80 pointer-events-none" />
-      <div className="absolute inset-0 bg-black/25 pointer-events-none" />
+      {/* Cinematic Multi-layered Dark Vignette & Overlays */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/60 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60 pointer-events-none" />
+      <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+
+      {/* Smooth bottom transition gradient into the warm ivory page theme */}
+      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-[#F5F2EA] to-transparent pointer-events-none z-10" />
 
       {/* Center Cinematic Content */}
       <div className="relative z-20 max-w-5xl mx-auto px-6 text-center flex flex-col items-center justify-center space-y-6 sm:space-y-8 pt-16">
         {/* Brand Tagline Header */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-champagne/30 bg-dark-900/60 backdrop-blur-md">
-          <span className="w-2 h-2 rounded-full bg-champagne animate-ping" />
-          <span className="text-[10px] sm:text-xs tracking-widest-2xl uppercase text-champagne font-mono">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#DEC5A3]/40 bg-black/60 backdrop-blur-md shadow-lg">
+          <span className="w-2 h-2 rounded-full bg-[#DEC5A3] animate-ping" />
+          <span className="text-[10px] sm:text-xs tracking-widest-2xl uppercase text-[#DEC5A3] font-mono font-medium">
             PREET CINEMATOGRAPHY
           </span>
         </div>
 
         {/* Main Headline */}
-        <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight text-pearl font-normal leading-[1.08] max-w-4xl drop-shadow-2xl">
-          Stories That Feel Like <span className="italic font-light text-shimmer">Cinema.</span>
+        <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight text-white font-normal leading-[1.08] max-w-4xl drop-shadow-2xl">
+          Stories That Feel Like <span className="italic font-light text-[#DEC5A3]">Cinema.</span>
         </h1>
 
         {/* Supporting Subtitle */}
-        <p className="font-sans text-xs sm:text-sm md:text-base tracking-widest text-pearl-muted uppercase max-w-2xl font-normal leading-relaxed drop-shadow-md">
-          Wedding Films <span className="text-champagne">•</span> Photography <span className="text-champagne">•</span> Pre-Weddings <span className="text-champagne">•</span> Events <span className="text-champagne">•</span> Reels
+        <p className="font-sans text-xs sm:text-sm md:text-base tracking-widest text-white/90 uppercase max-w-2xl font-normal leading-relaxed drop-shadow-md">
+          Wedding Films <span className="text-[#DEC5A3]">•</span> Photography <span className="text-[#DEC5A3]">•</span> Pre-Weddings <span className="text-[#DEC5A3]">•</span> Events <span className="text-[#DEC5A3]">•</span> Reels
         </p>
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 sm:pt-6 w-full sm:w-auto">
           <MagneticBtn
             onClick={onExploreClick}
-            className="w-full sm:w-auto px-8 py-4 rounded-full bg-champagne hover:bg-champagne-light text-dark font-sans font-semibold text-xs tracking-widest uppercase shadow-xl hover:shadow-champagne/25"
+            className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#B99A67] hover:bg-[#A38350] text-white font-sans font-semibold text-xs tracking-widest uppercase shadow-xl hover:shadow-[#B99A67]/30 transition-all"
             data-cursor="open"
             data-cursor-label="EXPLORE"
           >
@@ -79,7 +82,7 @@ export const Hero: React.FC<HeroProps> = ({
 
           <MagneticBtn
             onClick={onContactClick}
-            className="w-full sm:w-auto px-8 py-4 rounded-full border border-white/25 hover:border-champagne bg-dark-900/50 hover:bg-dark-800 backdrop-blur-md text-pearl hover:text-champagne font-sans font-medium text-xs tracking-widest uppercase transition-colors"
+            className="w-full sm:w-auto px-8 py-4 rounded-full border border-white/35 hover:border-[#DEC5A3] bg-black/50 hover:bg-black/70 backdrop-blur-md text-white hover:text-[#DEC5A3] font-sans font-medium text-xs tracking-widest uppercase transition-all shadow-md"
             data-cursor="open"
             data-cursor-label="BOOK"
           >
@@ -92,12 +95,12 @@ export const Hero: React.FC<HeroProps> = ({
       <div className="absolute bottom-8 left-8 z-30 hidden sm:block">
         <button
           onClick={toggleSound}
-          className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-dark-900/70 hover:bg-dark-800 border border-white/10 text-pearl-muted hover:text-champagne text-xs font-mono backdrop-blur-md transition-all duration-300"
+          className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-white/90 hover:text-[#DEC5A3] text-xs font-mono backdrop-blur-md transition-all duration-300 shadow-md"
           aria-label={isMuted ? 'Unmute background film' : 'Mute background film'}
           data-cursor="open"
           data-cursor-label={isMuted ? 'SOUND ON' : 'MUTE'}
         >
-          {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-champagne" />}
+          {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-[#DEC5A3]" />}
           <span>{isMuted ? 'AUDIO OFF' : 'AUDIO ON'}</span>
         </button>
       </div>
@@ -106,7 +109,7 @@ export const Hero: React.FC<HeroProps> = ({
       <div className="absolute bottom-8 right-8 z-30 hidden sm:block">
         <button
           onClick={onPlayFilm}
-          className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-dark-900/70 hover:bg-champagne hover:text-dark border border-white/10 text-pearl text-xs font-mono backdrop-blur-md transition-all duration-300 group"
+          className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/60 hover:bg-[#B99A67] text-white border border-white/20 text-xs font-mono backdrop-blur-md transition-all duration-300 group shadow-md"
           data-cursor="play"
           data-cursor-label="WATCH"
         >
@@ -116,7 +119,7 @@ export const Hero: React.FC<HeroProps> = ({
       </div>
 
       {/* Subtle Scroll Indicator (Center Bottom) */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 text-pearl-muted/60 hover:text-champagne transition-colors pointer-events-none">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 text-white/80 hover:text-[#DEC5A3] transition-colors pointer-events-none">
         <span className="text-[9px] tracking-widest-2xl font-mono uppercase">SCROLL</span>
         <ArrowDown className="w-3.5 h-3.5 animate-bounce" />
       </div>

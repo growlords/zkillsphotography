@@ -8,7 +8,7 @@ interface BookingCTAProps {
 
 export const BookingCTA: React.FC<BookingCTAProps> = ({ onStartStoryClick }) => {
   return (
-    <section className="relative py-32 sm:py-44 overflow-hidden border-b border-white/5 flex items-center justify-center">
+    <section className="relative py-32 sm:py-44 overflow-hidden border-b border-[#D9D3C8] flex items-center justify-center">
       {/* Background Image with Cinematic Overlay */}
       <div className="absolute inset-0 z-0">
         <img
@@ -17,32 +17,35 @@ export const BookingCTA: React.FC<BookingCTAProps> = ({ onStartStoryClick }) => 
           className="w-full h-full object-cover scale-105 filter brightness-[0.35] contrast-[1.1]"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/70 to-dark" />
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/50" />
       </div>
+
+      {/* Smooth top and bottom transitions */}
+      <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-[#FAF8F3] to-transparent pointer-events-none z-10 opacity-70" />
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#F5F2EA] to-transparent pointer-events-none z-10" />
 
       {/* Content Container */}
       <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-8 text-center flex flex-col items-center space-y-8">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-champagne/30 bg-dark-950/70 backdrop-blur-md">
-          <Sparkles className="w-3.5 h-3.5 text-champagne" />
-          <span className="text-[10px] sm:text-xs tracking-widest-2xl uppercase text-champagne font-mono">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#DEC5A3]/40 bg-black/60 backdrop-blur-md shadow-lg">
+          <Sparkles className="w-3.5 h-3.5 text-[#DEC5A3]" />
+          <span className="text-[10px] sm:text-xs tracking-widest-2xl uppercase text-[#DEC5A3] font-mono font-medium">
             LIMITED WEDDING CALENDAR 2026–2027
           </span>
         </div>
 
-        <h2 className="font-serif text-3xl sm:text-5xl md:text-7xl text-pearl font-normal leading-[1.1] max-w-3xl tracking-tight">
+        <h2 className="font-serif text-3xl sm:text-5xl md:text-7xl text-white font-normal leading-[1.1] max-w-3xl tracking-tight drop-shadow-xl">
           Your Story Deserves <br />
-          <span className="italic text-shimmer">More Than A Camera.</span>
+          <span className="italic text-[#DEC5A3]">More Than A Camera.</span>
         </h2>
 
-        <p className="font-sans text-sm sm:text-base md:text-lg text-pearl-muted max-w-xl leading-relaxed font-light">
+        <p className="font-sans text-sm sm:text-base md:text-lg text-white/90 max-w-xl leading-relaxed font-light drop-shadow-md">
           Let’s turn your moments into something you’ll want to relive forever. Dates book 6 to 12 months in advance to ensure our dedicated attention.
         </p>
 
         <div className="pt-4">
           <MagneticBtn
             onClick={onStartStoryClick}
-            className="px-9 py-4.5 rounded-full bg-champagne hover:bg-champagne-light text-dark font-sans font-semibold text-xs tracking-widest uppercase shadow-2xl hover:shadow-champagne/30 transition-all flex items-center gap-2 group"
+            className="px-9 py-4.5 rounded-full bg-[#B99A67] hover:bg-[#A38350] text-white font-sans font-semibold text-xs tracking-widest uppercase shadow-2xl hover:shadow-[#B99A67]/30 transition-all flex items-center gap-2 group"
             data-cursor="open"
             data-cursor-label="RESERVE"
           >

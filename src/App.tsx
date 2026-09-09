@@ -129,7 +129,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-dark text-pearl overflow-x-hidden">
+    <div className="relative min-h-screen bg-[#F5F2EA] text-[#171614] overflow-x-hidden">
       {/* Cinematic Film Grain Overlay */}
       <div className="film-grain" aria-hidden="true" />
 

@@ -41,50 +41,50 @@ export const Process: React.FC = () => {
   ];
 
   return (
-    <section id="process" className="py-28 sm:py-36 bg-dark border-b border-white/5 relative overflow-hidden">
+    <section id="process" className="py-28 sm:py-36 bg-[#F5F2EA] border-b border-[#D9D3C8] relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 relative z-10">
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-20">
-          <span className="text-[11px] uppercase tracking-widest-2xl text-champagne font-mono block mb-3">
+          <span className="text-[11px] uppercase tracking-widest-2xl text-[#B99A67] font-mono block mb-3 font-semibold">
             METHODOLOGY
           </span>
-          <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl text-pearl font-normal mb-4">
+          <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl text-[#171614] font-normal mb-4">
             The Journey to Cinema
           </h2>
-          <p className="text-pearl-muted text-sm font-sans">
+          <p className="text-[#6F6A61] text-sm font-sans">
             A seamless, transparent five-stage creative process engineered to ensure peace of mind on your most important days.
           </p>
         </div>
 
         {/* Timeline Grid (5 Steps) */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 relative">
-          {steps.map((step, idx) => {
+          {steps.map((step) => {
             const Icon = step.icon;
             return (
               <div
                 key={step.number}
-                className="group relative rounded-2xl bg-dark-900/70 border border-white/10 p-6 flex flex-col justify-between min-h-[320px] transition-all duration-300 hover:border-champagne/40 hover:-translate-y-1"
+                className="group relative rounded-2xl bg-[#FAF8F3] border border-[#D9D3C8] p-6 flex flex-col justify-between min-h-[320px] transition-all duration-300 hover:bg-white hover:border-[#B99A67] hover:-translate-y-1 shadow-sm hover:shadow-md"
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <span className="font-mono text-xs text-champagne tracking-widest border-b border-champagne/30 pb-1">
+                    <span className="font-mono text-xs text-[#B99A67] tracking-widest border-b border-[#B99A67]/40 pb-1 font-semibold">
                       {step.number}
                     </span>
-                    <Icon className="w-5 h-5 text-pearl-muted group-hover:text-champagne transition-colors" />
+                    <Icon className="w-5 h-5 text-[#6F6A61] group-hover:text-[#B99A67] transition-colors" />
                   </div>
 
-                  <h3 className="font-serif text-2xl text-pearl group-hover:text-champagne transition-colors mb-1">
+                  <h3 className="font-serif text-2xl text-[#171614] group-hover:text-[#B99A67] transition-colors mb-1">
                     {step.title}
                   </h3>
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-champagne/90 block mb-3">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#B99A67] block mb-3 font-semibold">
                     {step.subtitle}
                   </span>
-                  <p className="text-xs text-pearl-muted font-sans leading-relaxed">
+                  <p className="text-xs text-[#6F6A61] font-sans leading-relaxed">
                     {step.description}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-white/5 text-[10px] font-mono text-pearl-muted/60 uppercase tracking-widest">
+                <div className="pt-4 border-t border-[#D9D3C8] text-[10px] font-mono text-[#6F6A61] uppercase tracking-widest">
                   STEP {step.number} OF 05
                 </div>
               </div>

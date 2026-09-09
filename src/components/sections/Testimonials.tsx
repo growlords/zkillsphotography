@@ -51,37 +51,37 @@ export const Testimonials: React.FC = () => {
   const active = testimonials[currentIndex];
 
   return (
-    <section className="py-28 sm:py-36 bg-dark-950 border-b border-white/5 relative overflow-hidden">
+    <section className="py-28 sm:py-36 bg-[#FAF8F3] border-b border-[#D9D3C8] relative overflow-hidden">
       <div className="max-w-5xl mx-auto px-6 sm:px-8 relative z-10">
         <div className="flex flex-col items-center text-center">
-          {/* Header */}
-          <div className="flex items-center gap-1.5 text-champagne mb-4">
+          {/* Header Stars */}
+          <div className="flex items-center gap-1.5 text-[#B99A67] mb-4">
             {[...Array(5)].map((_, i) => (
               <Star key={i} className="w-4 h-4 fill-current" />
             ))}
           </div>
 
-          <span className="text-[11px] uppercase tracking-widest-2xl text-champagne font-mono block mb-8">
+          <span className="text-[11px] uppercase tracking-widest-2xl text-[#B99A67] font-mono block mb-8 font-semibold">
             WORDS FROM OUR COUPLES
           </span>
 
           {/* Quote Block */}
           <div className="relative max-w-4xl min-h-[220px] flex items-center justify-center">
-            <Quote className="w-16 h-16 text-champagne/10 absolute -top-8 -left-4 pointer-events-none" />
-            <blockquote className="font-serif text-2xl sm:text-3xl md:text-4xl text-pearl font-normal leading-relaxed italic transition-all duration-500 ease-in-out">
+            <Quote className="w-16 h-16 text-[#B99A67]/20 absolute -top-8 -left-4 pointer-events-none" />
+            <blockquote className="font-serif text-2xl sm:text-3xl md:text-4xl text-[#171614] font-normal leading-relaxed italic transition-all duration-500 ease-in-out">
               “{active.quote}”
             </blockquote>
           </div>
 
           {/* Client Details */}
           <div className="mt-8 space-y-1">
-            <h4 className="font-sans text-base font-semibold tracking-wider text-pearl">
+            <h4 className="font-sans text-base font-semibold tracking-wider text-[#171614]">
               {active.couple}
             </h4>
-            <p className="text-xs font-mono text-champagne">
+            <p className="text-xs font-mono text-[#B99A67] font-medium">
               {active.event}
             </p>
-            <p className="text-xs font-mono text-pearl-muted">
+            <p className="text-xs font-mono text-[#6F6A61]">
               {active.location} • {active.year}
             </p>
           </div>
@@ -90,19 +90,19 @@ export const Testimonials: React.FC = () => {
           <div className="flex items-center gap-4 mt-10">
             <button
               onClick={handlePrev}
-              className="p-3 rounded-full bg-dark-850 hover:bg-champagne hover:text-dark text-pearl border border-white/10 transition-all duration-300"
+              className="p-3 rounded-full bg-white hover:bg-[#B99A67] hover:text-white text-[#171614] border border-[#D9D3C8] shadow-sm transition-all duration-300"
               aria-label="Previous testimonial"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
 
-            <span className="text-xs font-mono text-pearl-muted px-2">
+            <span className="text-xs font-mono text-[#6F6A61] px-2 font-medium">
               0{currentIndex + 1} / 0{testimonials.length}
             </span>
 
             <button
               onClick={handleNext}
-              className="p-3 rounded-full bg-dark-850 hover:bg-champagne hover:text-dark text-pearl border border-white/10 transition-all duration-300"
+              className="p-3 rounded-full bg-white hover:bg-[#B99A67] hover:text-white text-[#171614] border border-[#D9D3C8] shadow-sm transition-all duration-300"
               aria-label="Next testimonial"
             >
               <ChevronRight className="w-5 h-5" />
