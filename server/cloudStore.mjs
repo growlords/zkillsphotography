@@ -6,7 +6,7 @@
 const BUCKET = process.env.KVDB_BUCKET || 'AybQTUpEeH2rQaAP1VYCjM';
 const BASE_URL = `https://kvdb.io/${BUCKET}`;
 
-const CACHE_TTL_MS = 2000; // 2 seconds cache TTL
+const CACHE_TTL_MS = 1500; // 1.5 seconds cache TTL
 
 let memoryCache = {
   content: null,
@@ -16,9 +16,9 @@ let memoryCache = {
 };
 
 /**
- * Fetch with a timeout to prevent serverless hanging
+ * Fetch with an 8-second timeout to accommodate cross-continental serverless connections
  */
-async function fetchWithTimeout(url, options = {}, timeoutMs = 4000) {
+async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -43,14 +43,17 @@ export async function getCloudContent(forceFresh = false) {
 
   try {
     const res = await fetchWithTimeout(`${BASE_URL}/site_content`, {
-      headers: { Accept: 'application/json' },
+      headers: { Accept: '*/*' },
     });
     if (res.ok) {
-      const parsed = await res.json();
-      if (parsed && typeof parsed === 'object') {
-        memoryCache.content = parsed;
-        memoryCache.contentFetchedAt = now;
-        return parsed;
+      const rawText = await res.text();
+      if (rawText && rawText.trim().length > 0) {
+        const parsed = JSON.parse(rawText);
+        if (parsed && typeof parsed === 'object') {
+          memoryCache.content = parsed;
+          memoryCache.contentFetchedAt = now;
+          return parsed;
+        }
       }
     }
   } catch (err) {
@@ -94,14 +97,17 @@ export async function getCloudProjects(forceFresh = false) {
 
   try {
     const res = await fetchWithTimeout(`${BASE_URL}/portfolio_projects`, {
-      headers: { Accept: 'application/json' },
+      headers: { Accept: '*/*' },
     });
     if (res.ok) {
-      const parsed = await res.json();
-      if (Array.isArray(parsed)) {
-        memoryCache.projects = parsed;
-        memoryCache.projectsFetchedAt = now;
-        return parsed;
+      const rawText = await res.text();
+      if (rawText && rawText.trim().length > 0) {
+        const parsed = JSON.parse(rawText);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          memoryCache.projects = parsed;
+          memoryCache.projectsFetchedAt = now;
+          return parsed;
+        }
       }
     }
   } catch (err) {
