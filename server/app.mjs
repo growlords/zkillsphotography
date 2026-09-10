@@ -129,23 +129,6 @@ router.post('/auth/change-password', requireAuth, (req, res) => {
   res.json({ success: true, message: 'Password updated successfully' });
 });
 
-router.get('/debug-kvdb', async (req, res) => {
-  try {
-    const t0 = Date.now();
-    const r = await fetch('https://kvdb.io/AybQTUpEeH2rQaAP1VYCjM/portfolio_projects');
-    const text = await r.text();
-    res.json({
-      status: r.status,
-      timeMs: Date.now() - t0,
-      headers: Object.fromEntries(r.headers.entries()),
-      bodyLength: text.length,
-      bodyPreview: text.slice(0, 200)
-    });
-  } catch (e) {
-    res.status(500).json({ error: e.message, stack: e.stack });
-  }
-});
-
 // ==========================================
 // STATS / OVERVIEW ROUTE
 // ==========================================

@@ -12,9 +12,9 @@ let memoryCache = {
 };
 
 /**
- * Fetch with an 6-second timeout
+ * Fetch with an 8-second timeout
  */
-async function fetchWithTimeout(url, options = {}, timeoutMs = 6000) {
+async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -30,12 +30,18 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 6000) {
 
 /**
  * Get all site content (branding, hero, about, services, process, testimonials, contact, social, seo)
- * Fetches latest data from persistent cloud KVdb store with in-memory fallback.
+ * Always appends cache-busting timestamp to bypass KVdb edge CDN caching.
  */
 export async function getCloudContent() {
   try {
-    const res = await fetchWithTimeout(`${BASE_URL}/site_content`, {
-      headers: { Accept: '*/*' },
+    const url = `${BASE_URL}/site_content?_t=${Date.now()}`;
+    const res = await fetchWithTimeout(url, {
+      cache: 'no-store',
+      headers: {
+        Accept: '*/*',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+      },
     });
     if (res.ok) {
       const rawText = await res.text();
@@ -78,12 +84,18 @@ export async function saveCloudContent(updatedContent) {
 
 /**
  * Get portfolio projects list
- * Fetches latest data from persistent cloud KVdb store with in-memory fallback.
+ * Always appends cache-busting timestamp to bypass KVdb edge CDN caching.
  */
 export async function getCloudProjects() {
   try {
-    const res = await fetchWithTimeout(`${BASE_URL}/portfolio_projects`, {
-      headers: { Accept: '*/*' },
+    const url = `${BASE_URL}/portfolio_projects?_t=${Date.now()}`;
+    const res = await fetchWithTimeout(url, {
+      cache: 'no-store',
+      headers: {
+        Accept: '*/*',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+      },
     });
     if (res.ok) {
       const rawText = await res.text();
