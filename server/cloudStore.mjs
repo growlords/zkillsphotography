@@ -6,19 +6,15 @@
 const BUCKET = process.env.KVDB_BUCKET || 'AybQTUpEeH2rQaAP1VYCjM';
 const BASE_URL = `https://kvdb.io/${BUCKET}`;
 
-const CACHE_TTL_MS = 1500; // 1.5 seconds cache TTL
-
 let memoryCache = {
   content: null,
-  contentFetchedAt: 0,
   projects: null,
-  projectsFetchedAt: 0,
 };
 
 /**
- * Fetch with an 8-second timeout to accommodate cross-continental serverless connections
+ * Fetch with an 6-second timeout
  */
-async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+async function fetchWithTimeout(url, options = {}, timeoutMs = 6000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -34,13 +30,9 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
 
 /**
  * Get all site content (branding, hero, about, services, process, testimonials, contact, social, seo)
+ * Fetches latest data from persistent cloud KVdb store with in-memory fallback.
  */
-export async function getCloudContent(forceFresh = false) {
-  const now = Date.now();
-  if (!forceFresh && memoryCache.content && (now - memoryCache.contentFetchedAt < CACHE_TTL_MS)) {
-    return memoryCache.content;
-  }
-
+export async function getCloudContent() {
   try {
     const res = await fetchWithTimeout(`${BASE_URL}/site_content`, {
       headers: { Accept: '*/*' },
@@ -51,24 +43,22 @@ export async function getCloudContent(forceFresh = false) {
         const parsed = JSON.parse(rawText);
         if (parsed && typeof parsed === 'object') {
           memoryCache.content = parsed;
-          memoryCache.contentFetchedAt = now;
           return parsed;
         }
       }
     }
   } catch (err) {
-    console.warn('[CloudStore] getCloudContent fallback to memory:', err.message);
+    console.warn('[CloudStore] getCloudContent error, fallback to memory:', err.message);
   }
 
   return memoryCache.content;
 }
 
 /**
- * Save site content section or entire content object
+ * Save site content section or entire content object to persistent KVdb
  */
 export async function saveCloudContent(updatedContent) {
   memoryCache.content = updatedContent;
-  memoryCache.contentFetchedAt = Date.now();
 
   try {
     const res = await fetchWithTimeout(`${BASE_URL}/site_content`, {
@@ -88,13 +78,9 @@ export async function saveCloudContent(updatedContent) {
 
 /**
  * Get portfolio projects list
+ * Fetches latest data from persistent cloud KVdb store with in-memory fallback.
  */
-export async function getCloudProjects(forceFresh = false) {
-  const now = Date.now();
-  if (!forceFresh && memoryCache.projects && (now - memoryCache.projectsFetchedAt < CACHE_TTL_MS)) {
-    return memoryCache.projects;
-  }
-
+export async function getCloudProjects() {
   try {
     const res = await fetchWithTimeout(`${BASE_URL}/portfolio_projects`, {
       headers: { Accept: '*/*' },
@@ -105,24 +91,22 @@ export async function getCloudProjects(forceFresh = false) {
         const parsed = JSON.parse(rawText);
         if (Array.isArray(parsed) && parsed.length > 0) {
           memoryCache.projects = parsed;
-          memoryCache.projectsFetchedAt = now;
           return parsed;
         }
       }
     }
   } catch (err) {
-    console.warn('[CloudStore] getCloudProjects fallback to memory:', err.message);
+    console.warn('[CloudStore] getCloudProjects error, fallback to memory:', err.message);
   }
 
   return memoryCache.projects;
 }
 
 /**
- * Save portfolio projects array
+ * Save portfolio projects array to persistent KVdb
  */
 export async function saveCloudProjects(projectsArray) {
   memoryCache.projects = projectsArray;
-  memoryCache.projectsFetchedAt = Date.now();
 
   try {
     const res = await fetchWithTimeout(`${BASE_URL}/portfolio_projects`, {
