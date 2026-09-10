@@ -4,9 +4,17 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import { db } from './db.mjs';
 
-const UPLOADS_DIR = path.resolve(process.cwd(), 'public/uploads');
+const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const UPLOADS_DIR = isVercel
+  ? path.resolve('/tmp', 'uploads')
+  : path.resolve(process.cwd(), 'public/uploads');
+
 if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  try {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  } catch (err) {
+    // ignore read-only on serverless
+  }
 }
 
 const storage = multer.diskStorage({
