@@ -39,8 +39,14 @@ export const BookingCTA: React.FC<BookingCTAProps> = ({ onStartStoryClick }) => 
         </div>
 
         <h2 className="font-serif text-3xl sm:text-5xl md:text-7xl text-white font-normal leading-[1.1] max-w-3xl tracking-tight drop-shadow-xl">
-          Your Story Deserves <br />
-          <span className="italic text-champagne">More Than A Camera.</span>
+          {ctaHeadline === "Your Story Deserves More Than A Camera." || ctaHeadline === "Begin Your Visual Legacy." ? (
+            <>
+              Your Story Deserves <br />
+              <span className="italic text-champagne">More Than A Camera.</span>
+            </>
+          ) : (
+            ctaHeadline
+          )}
         </h2>
 
         <p className="font-sans text-sm sm:text-base md:text-lg text-pearl/90 max-w-xl leading-relaxed font-light drop-shadow-md">

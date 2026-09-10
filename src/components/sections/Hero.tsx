@@ -73,7 +73,7 @@ export const Hero: React.FC<HeroProps> = ({
 
         {/* Main Headline */}
         <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight text-white font-normal leading-[1.08] max-w-4xl drop-shadow-2xl">
-          {headline.includes("Cinema") ? (
+          {headline === "Stories That Feel Like Cinema." ? (
             <>
               Stories That Feel Like <span className="italic font-light text-champagne-light">Cinema.</span>
             </>

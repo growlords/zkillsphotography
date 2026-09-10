@@ -47,10 +47,11 @@ export const Contact: React.FC = () => {
   };
 
   const getWhatsAppDirectLink = () => {
+    const rawNumber = content?.contact?.phoneRaw || content?.contact?.phone?.replace(/\D/g, '') || '919729371307';
     const text = encodeURIComponent(
       `Hello ${brandName}, I would like to inquire about booking.\n\nName: ${formData.name || 'Client'}\nEvent: ${formData.eventType}\nDate: ${formData.eventDate || 'TBD'}\nLocation: ${formData.location || 'Sirsa'}\nNote: ${formData.message || 'Please share availability and packages.'}`
     );
-    return `https://wa.me/919729371307?text=${text}`;
+    return `https://wa.me/${rawNumber}?text=${text}`;
   };
 
   return (

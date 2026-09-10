@@ -233,9 +233,16 @@ export const SiteContentProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      const cacheBust = `_t=${Date.now()}`;
       const [contentRes, portfolioRes] = await Promise.allSettled([
-        fetch('/api/content'),
-        fetch('/api/portfolio')
+        fetch(`/api/content?${cacheBust}`, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+        }),
+        fetch(`/api/portfolio?${cacheBust}`, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+        })
       ]);
 
       if (contentRes.status === 'fulfilled' && contentRes.value.ok) {
@@ -261,6 +268,20 @@ export const SiteContentProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   useEffect(() => {
     fetchData();
+
+    // Automatically revalidate when tab regains focus or visibility changes
+    const onFocus = () => fetchData();
+    const onVisibilityChange = () => {
+      if (!document.hidden) fetchData();
+    };
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, [fetchData]);
 
   // Derive films (projects that have videoSrc or category is Cinematic Films / Reels)

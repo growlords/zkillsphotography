@@ -6,6 +6,13 @@ import fs from 'node:fs';
 import { db, initSchema } from './db.mjs';
 import { authenticateUser, destroySession, validateSession, changeAdminPassword, requireAuth } from './auth.mjs';
 import { upload, registerMediaFile } from './upload.mjs';
+import {
+  getCloudContent,
+  saveCloudContent,
+  getCloudProjects,
+  saveCloudProjects,
+  uploadMediaToCloud
+} from './cloudStore.mjs';
 
 const app = express();
 
@@ -32,11 +39,30 @@ const UPLOADS_DIR = isVercel
   : path.resolve(process.cwd(), 'public/uploads');
 const ASSETS_DIR = path.resolve(process.cwd(), 'public/assets');
 
+// Uploaded file delivery with fallback to persistent cloud storage
+app.get('/uploads/:filename', (req, res, next) => {
+  const localFile = path.join(UPLOADS_DIR, req.params.filename);
+  if (fs.existsSync(localFile)) {
+    return res.sendFile(localFile);
+  }
+  // If ephemeral /tmp does not have the file on cold start, redirect to permanent cloud asset
+  return res.redirect(302, `https://raw.githubusercontent.com/growlords/zkillsphotography/main/public/uploads/${req.params.filename}`);
+});
+
 app.use('/uploads', express.static(UPLOADS_DIR));
 app.use('/assets', express.static(ASSETS_DIR));
 
 // Create Router so routes work with both /api/* and /* prefixes
 const router = express.Router();
+
+// Enforce aggressive cache busting on all API routes so admin updates are immediately visible
+router.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  next();
+});
 
 // ==========================================
 // AUTHENTICATION ROUTES
@@ -107,11 +133,16 @@ router.post('/auth/change-password', requireAuth, (req, res) => {
 // STATS / OVERVIEW ROUTE
 // ==========================================
 
-router.get('/stats', (req, res) => {
+router.get('/stats', async (req, res) => {
   try {
-    const totalProjects = db.prepare('SELECT COUNT(*) as count FROM portfolio_projects').get().count;
-    const publishedProjects = db.prepare('SELECT COUNT(*) as count FROM portfolio_projects WHERE published = 1').get().count;
-    const draftProjects = db.prepare('SELECT COUNT(*) as count FROM portfolio_projects WHERE published = 0').get().count;
+    const cloudProjects = await getCloudProjects();
+    const projectsList = Array.isArray(cloudProjects) && cloudProjects.length > 0
+      ? cloudProjects
+      : db.prepare('SELECT * FROM portfolio_projects').all();
+
+    const totalProjects = projectsList.length;
+    const publishedProjects = projectsList.filter((p) => p.published).length;
+    const draftProjects = totalProjects - publishedProjects;
     const totalImages = db.prepare("SELECT COUNT(*) as count FROM media_files WHERE file_type = 'image'").get().count;
     const totalVideos = db.prepare("SELECT COUNT(*) as count FROM media_files WHERE file_type = 'video'").get().count;
 
@@ -123,7 +154,7 @@ router.get('/stats', (req, res) => {
       totalVideos,
       websiteStatus: 'Live & Operational',
       serverUptime: Math.floor(process.uptime()),
-      dbEngine: isVercel ? 'Native SQLite 3 (Vercel Serverless)' : 'Native SQLite 3 (node:sqlite WAL mode)'
+      dbEngine: 'Persistent Global Cloud Storage (GitHub & SQLite WAL)'
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -131,11 +162,17 @@ router.get('/stats', (req, res) => {
 });
 
 // ==========================================
-// SITE CONTENT ROUTES
+// SITE CONTENT ROUTES (PERSISTENT CLOUD + LOCAL)
 // ==========================================
 
-router.get('/content', (req, res) => {
+router.get('/content', async (req, res) => {
   try {
+    const cloudData = await getCloudContent();
+    if (cloudData && Object.keys(cloudData).length > 0) {
+      return res.json(cloudData);
+    }
+
+    // Fallback to local DB
     const rows = db.prepare('SELECT key, data_json, updated_at FROM site_content').all();
     const content = {};
     for (const row of rows) {
@@ -151,8 +188,13 @@ router.get('/content', (req, res) => {
   }
 });
 
-router.get('/content/:section', (req, res) => {
+router.get('/content/:section', async (req, res) => {
   try {
+    const cloudData = await getCloudContent();
+    if (cloudData && cloudData[req.params.section]) {
+      return res.json(cloudData[req.params.section]);
+    }
+
     const row = db.prepare('SELECT data_json, updated_at FROM site_content WHERE key = ?').get(req.params.section);
     if (!row) {
       return res.status(404).json({ error: `Section '${req.params.section}' not found` });
@@ -163,19 +205,29 @@ router.get('/content/:section', (req, res) => {
   }
 });
 
-router.put('/content/:section', requireAuth, (req, res) => {
+router.put('/content/:section', requireAuth, async (req, res) => {
   try {
     const section = req.params.section;
     const dataJson = JSON.stringify(req.body);
     const now = new Date().toISOString();
 
-    db.prepare(`
-      INSERT INTO site_content (key, data_json, updated_at)
-      VALUES (?, ?, ?)
-      ON CONFLICT(key) DO UPDATE SET
-        data_json = excluded.data_json,
-        updated_at = excluded.updated_at
-    `).run(section, dataJson, now);
+    // 1. Update local database
+    try {
+      db.prepare(`
+        INSERT INTO site_content (key, data_json, updated_at)
+        VALUES (?, ?, ?)
+        ON CONFLICT(key) DO UPDATE SET
+          data_json = excluded.data_json,
+          updated_at = excluded.updated_at
+      `).run(section, dataJson, now);
+    } catch (e) {
+      console.warn('[DB] Local write warning:', e.message);
+    }
+
+    // 2. Persist to cloud store across all Vercel instances
+    let currentContent = (await getCloudContent(true)) || {};
+    currentContent[section] = req.body;
+    await saveCloudContent(currentContent);
 
     res.json({ success: true, section, data: req.body, updatedAt: now });
   } catch (err) {
@@ -184,12 +236,20 @@ router.put('/content/:section', requireAuth, (req, res) => {
 });
 
 // ==========================================
-// PORTFOLIO CRUD ROUTES
+// PORTFOLIO CRUD ROUTES (PERSISTENT CLOUD + LOCAL)
 // ==========================================
 
-router.get('/portfolio', (req, res) => {
+router.get('/portfolio', async (req, res) => {
   try {
     const isAll = req.query.all === 'true';
+    const cloudProjects = await getCloudProjects();
+
+    if (Array.isArray(cloudProjects) && cloudProjects.length > 0) {
+      let projects = isAll ? [...cloudProjects] : cloudProjects.filter((p) => p.published);
+      projects.sort((a, b) => (Number(a.displayOrder ?? a.display_order ?? 0)) - (Number(b.displayOrder ?? b.display_order ?? 0)));
+      return res.json(projects);
+    }
+
     let query = 'SELECT * FROM portfolio_projects';
     if (!isAll) {
       query += ' WHERE published = 1';
@@ -220,8 +280,14 @@ router.get('/portfolio', (req, res) => {
   }
 });
 
-router.get('/portfolio/:id', (req, res) => {
+router.get('/portfolio/:id', async (req, res) => {
   try {
+    const cloudProjects = await getCloudProjects();
+    if (Array.isArray(cloudProjects)) {
+      const p = cloudProjects.find((item) => item.id === req.params.id);
+      if (p) return res.json(p);
+    }
+
     const r = db.prepare('SELECT * FROM portfolio_projects WHERE id = ?').get(req.params.id);
     if (!r) {
       return res.status(404).json({ error: 'Project not found' });
@@ -247,7 +313,7 @@ router.get('/portfolio/:id', (req, res) => {
   }
 });
 
-router.post('/portfolio', requireAuth, (req, res) => {
+router.post('/portfolio', requireAuth, async (req, res) => {
   try {
     const {
       title,
@@ -270,41 +336,64 @@ router.post('/portfolio', requireAuth, (req, res) => {
     const id = `proj-${Date.now()}`;
     const now = new Date().toISOString();
 
-    db.prepare(`
-      INSERT INTO portfolio_projects (
-        id, title, category, year, location, description, cover_image, gallery_json, video_src, featured, published, display_order, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    const newProject = {
       id,
       title,
       category,
-      year || new Date().getFullYear().toString(),
-      location || 'Sirsa, India',
-      description || '',
+      year: year || new Date().getFullYear().toString(),
+      location: location || 'Sirsa, India',
+      description: description || '',
       coverImage,
-      JSON.stringify(gallery),
-      videoSrc || null,
-      featured ? 1 : 0,
-      published ? 1 : 0,
-      Number(displayOrder) || 0,
-      now,
-      now
-    );
+      gallery,
+      videoSrc: videoSrc || null,
+      featured: Boolean(featured),
+      published: Boolean(published),
+      displayOrder: Number(displayOrder) || 0,
+      createdAt: now,
+      updatedAt: now
+    };
 
-    res.status(201).json({ success: true, id, message: 'Project created successfully' });
+    // 1. Update local DB
+    try {
+      db.prepare(`
+        INSERT INTO portfolio_projects (
+          id, title, category, year, location, description, cover_image, gallery_json, video_src, featured, published, display_order, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        newProject.title,
+        newProject.category,
+        newProject.year,
+        newProject.location,
+        newProject.description,
+        newProject.coverImage,
+        JSON.stringify(newProject.gallery),
+        newProject.videoSrc,
+        newProject.featured ? 1 : 0,
+        newProject.published ? 1 : 0,
+        newProject.displayOrder,
+        now,
+        now
+      );
+    } catch (e) {
+      console.warn('[DB] Local write warning:', e.message);
+    }
+
+    // 2. Persist to cloud store
+    const projects = (await getCloudProjects(true)) || [];
+    projects.push(newProject);
+    await saveCloudProjects(projects);
+
+    res.status(201).json({ success: true, id, message: 'Project created successfully', project: newProject });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.put('/portfolio/:id', requireAuth, (req, res) => {
+router.put('/portfolio/:id', requireAuth, async (req, res) => {
   try {
     const id = req.params.id;
-    const existing = db.prepare('SELECT id FROM portfolio_projects WHERE id = ?').get(id);
-    if (!existing) {
-      return res.status(404).json({ error: 'Project not found' });
-    }
-
+    const now = new Date().toISOString();
     const {
       title,
       category,
@@ -319,38 +408,80 @@ router.put('/portfolio/:id', requireAuth, (req, res) => {
       displayOrder = 0
     } = req.body;
 
-    const now = new Date().toISOString();
+    // 1. Update local DB
+    try {
+      db.prepare(`
+        UPDATE portfolio_projects SET
+          title = ?,
+          category = ?,
+          year = ?,
+          location = ?,
+          description = ?,
+          cover_image = ?,
+          gallery_json = ?,
+          video_src = ?,
+          featured = ?,
+          published = ?,
+          display_order = ?,
+          updated_at = ?
+        WHERE id = ?
+      `).run(
+        title,
+        category,
+        year,
+        location,
+        description,
+        coverImage,
+        JSON.stringify(gallery),
+        videoSrc || null,
+        featured ? 1 : 0,
+        published ? 1 : 0,
+        Number(displayOrder) || 0,
+        now,
+        id
+      );
+    } catch (e) {
+      console.warn('[DB] Local write warning:', e.message);
+    }
 
-    db.prepare(`
-      UPDATE portfolio_projects SET
-        title = ?,
-        category = ?,
-        year = ?,
-        location = ?,
-        description = ?,
-        cover_image = ?,
-        gallery_json = ?,
-        video_src = ?,
-        featured = ?,
-        published = ?,
-        display_order = ?,
-        updated_at = ?
-      WHERE id = ?
-    `).run(
-      title,
-      category,
-      year,
-      location,
-      description,
-      coverImage,
-      JSON.stringify(gallery),
-      videoSrc || null,
-      featured ? 1 : 0,
-      published ? 1 : 0,
-      Number(displayOrder) || 0,
-      now,
-      id
-    );
+    // 2. Persist to cloud store
+    let projects = (await getCloudProjects(true)) || [];
+    const index = projects.findIndex((p) => p.id === id);
+    if (index !== -1) {
+      projects[index] = {
+        ...projects[index],
+        title,
+        category,
+        year,
+        location,
+        description,
+        coverImage,
+        gallery,
+        videoSrc: videoSrc || null,
+        featured: Boolean(featured),
+        published: Boolean(published),
+        displayOrder: Number(displayOrder) || 0,
+        updatedAt: now
+      };
+    } else {
+      projects.push({
+        id,
+        title,
+        category,
+        year,
+        location,
+        description,
+        coverImage,
+        gallery,
+        videoSrc: videoSrc || null,
+        featured: Boolean(featured),
+        published: Boolean(published),
+        displayOrder: Number(displayOrder) || 0,
+        createdAt: now,
+        updatedAt: now
+      });
+    }
+    await saveCloudProjects(projects);
 
     res.json({ success: true, id, message: 'Project updated successfully' });
   } catch (err) {
@@ -358,19 +489,53 @@ router.put('/portfolio/:id', requireAuth, (req, res) => {
   }
 });
 
-router.delete('/portfolio/:id', requireAuth, (req, res) => {
+router.delete('/portfolio/:id', requireAuth, async (req, res) => {
   try {
     const id = req.params.id;
-    db.prepare('DELETE FROM portfolio_projects WHERE id = ?').run(id);
+
+    // 1. Delete from local DB
+    try {
+      db.prepare('DELETE FROM portfolio_projects WHERE id = ?').run(id);
+    } catch (e) {
+      console.warn('[DB] Local delete warning:', e.message);
+    }
+
+    // 2. Delete from cloud store
+    let projects = (await getCloudProjects(true)) || [];
+    projects = projects.filter((p) => p.id !== id);
+    await saveCloudProjects(projects);
+
     res.json({ success: true, message: 'Project deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.post('/portfolio/:id/duplicate', requireAuth, (req, res) => {
+router.post('/portfolio/:id/duplicate', requireAuth, async (req, res) => {
   try {
-    const original = db.prepare('SELECT * FROM portfolio_projects WHERE id = ?').get(req.params.id);
+    let projects = (await getCloudProjects(true)) || [];
+    let original = projects.find((p) => p.id === req.params.id);
+
+    if (!original) {
+      const r = db.prepare('SELECT * FROM portfolio_projects WHERE id = ?').get(req.params.id);
+      if (r) {
+        original = {
+          id: r.id,
+          title: r.title,
+          category: r.category,
+          year: r.year,
+          location: r.location,
+          description: r.description,
+          coverImage: r.cover_image,
+          gallery: JSON.parse(r.gallery_json || '[]'),
+          videoSrc: r.video_src,
+          featured: Boolean(r.featured),
+          published: Boolean(r.published),
+          displayOrder: r.display_order
+        };
+      }
+    }
+
     if (!original) {
       return res.status(404).json({ error: 'Original project not found' });
     }
@@ -379,26 +544,19 @@ router.post('/portfolio/:id/duplicate', requireAuth, (req, res) => {
     const now = new Date().toISOString();
     const newTitle = `${original.title} (Copy)`;
 
-    db.prepare(`
-      INSERT INTO portfolio_projects (
-        id, title, category, year, location, description, cover_image, gallery_json, video_src, featured, published, display_order, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      newId,
-      newTitle,
-      original.category,
-      original.year,
-      original.location,
-      original.description,
-      original.cover_image,
-      original.gallery_json,
-      original.video_src,
-      0,
-      0,
-      original.display_order + 1,
-      now,
-      now
-    );
+    const duplicated = {
+      ...original,
+      id: newId,
+      title: newTitle,
+      published: false,
+      featured: false,
+      displayOrder: (original.displayOrder || 0) + 1,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    projects.push(duplicated);
+    await saveCloudProjects(projects);
 
     res.status(201).json({ success: true, id: newId, title: newTitle });
   } catch (err) {
@@ -406,17 +564,26 @@ router.post('/portfolio/:id/duplicate', requireAuth, (req, res) => {
   }
 });
 
-router.post('/portfolio/reorder', requireAuth, (req, res) => {
+router.post('/portfolio/reorder', requireAuth, async (req, res) => {
   try {
     const { order } = req.body;
     if (!Array.isArray(order)) {
       return res.status(400).json({ error: 'order array required' });
     }
 
-    const updateStmt = db.prepare('UPDATE portfolio_projects SET display_order = ? WHERE id = ?');
+    let projects = (await getCloudProjects(true)) || [];
     for (const item of order) {
-      updateStmt.run(item.displayOrder, item.id);
+      const p = projects.find((proj) => proj.id === item.id);
+      if (p) p.displayOrder = item.displayOrder;
     }
+    await saveCloudProjects(projects);
+
+    try {
+      const updateStmt = db.prepare('UPDATE portfolio_projects SET display_order = ? WHERE id = ?');
+      for (const item of order) {
+        updateStmt.run(item.displayOrder, item.id);
+      }
+    } catch (_) {}
 
     res.json({ success: true, message: 'Projects reordered successfully' });
   } catch (err) {
@@ -446,13 +613,26 @@ router.get('/media', (req, res) => {
   }
 });
 
-router.post('/media/upload', requireAuth, upload.array('files', 20), (req, res) => {
+router.post('/media/upload', requireAuth, upload.array('files', 20), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No files were uploaded' });
     }
 
     const registeredFiles = req.files.map((file) => registerMediaFile(file));
+
+    // Upload to permanent cloud storage in background
+    for (const file of req.files) {
+      try {
+        if (fs.existsSync(file.path) && file.size < 15 * 1024 * 1024) {
+          const buffer = fs.readFileSync(file.path);
+          await uploadMediaToCloud(file.filename, buffer);
+        }
+      } catch (err) {
+        console.warn('[MediaUpload] Cloud backup notice:', err.message);
+      }
+    }
+
     res.status(201).json({
       success: true,
       files: registeredFiles,
@@ -463,13 +643,24 @@ router.post('/media/upload', requireAuth, upload.array('files', 20), (req, res) 
   }
 });
 
-router.post('/media/upload-single', requireAuth, upload.single('file'), (req, res) => {
+router.post('/media/upload-single', requireAuth, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file was uploaded' });
     }
 
     const registered = registerMediaFile(req.file);
+
+    // Upload to permanent cloud storage
+    try {
+      if (fs.existsSync(req.file.path) && req.file.size < 15 * 1024 * 1024) {
+        const buffer = fs.readFileSync(req.file.path);
+        await uploadMediaToCloud(req.file.filename, buffer);
+      }
+    } catch (err) {
+      console.warn('[MediaUploadSingle] Cloud backup notice:', err.message);
+    }
+
     res.status(201).json({
       success: true,
       file: registered,
