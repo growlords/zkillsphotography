@@ -245,8 +245,25 @@ router.get('/portfolio', async (req, res) => {
     const cloudProjects = await getCloudProjects();
 
     if (Array.isArray(cloudProjects) && cloudProjects.length > 0) {
-      let projects = isAll ? [...cloudProjects] : cloudProjects.filter((p) => p.published);
-      projects.sort((a, b) => (Number(a.displayOrder ?? a.display_order ?? 0)) - (Number(b.displayOrder ?? b.display_order ?? 0)));
+      const normalized = cloudProjects.map((p) => ({
+        id: p.id,
+        title: p.title,
+        category: p.category,
+        year: p.year,
+        location: p.location,
+        description: p.description,
+        coverImage: p.coverImage || p.cover_image,
+        gallery: Array.isArray(p.gallery) ? p.gallery : JSON.parse(p.gallery_json || '[]'),
+        videoSrc: p.videoSrc || p.video_src || undefined,
+        featured: Boolean(p.featured),
+        published: p.published === true || p.published === 1,
+        displayOrder: Number(p.displayOrder ?? p.display_order ?? 0),
+        createdAt: p.createdAt || p.created_at,
+        updatedAt: p.updatedAt || p.updated_at
+      }));
+
+      let projects = isAll ? normalized : normalized.filter((p) => p.published);
+      projects.sort((a, b) => a.displayOrder - b.displayOrder);
       return res.json(projects);
     }
 
