@@ -21,17 +21,17 @@ export interface StudioInfo {
 }
 
 export const studioInfo: StudioInfo = {
-  name: "Preet Cinematography",
+  name: "Z Skills Photography",
   tagline: "Stories That Feel Like Cinema.",
   heroHeadline: "Stories That Feel Like Cinema.",
   subheadline: "Wedding Films • Photography • Pre-Weddings • Events • Reels",
-  description: "Preet Cinematography is an award-winning visual storytelling studio crafting high-end wedding films, editorial photography, and cinematic narratives across Punjab and globally.",
+  description: "Z Skills Photography is an award-winning visual storytelling studio crafting high-end wedding films, editorial photography, and cinematic narratives in Sirsa and worldwide.",
   phone: "+91 9729371307",
   phoneRaw: "919729371307",
   phoneTel: "tel:+919729371307",
   whatsappUrl: "https://wa.me/919729371307",
-  email: "bookings@preetcinematography.com",
-  location: "Barnala & Zira, Punjab, India • Available Worldwide",
+  email: "bookings@zskillsphotography.com",
+  location: "Sirsa, India • Available Worldwide",
   instagram: "@its._kamalpreet_13",
   instagramUrl: "https://www.instagram.com/its._kamalpreet_13?stkn=MXBmOWR3NG9wNjV3bA%3D%3D",
   youtubeUrl: "https://youtube.com/@zskillsphotography?si=9dr-0VvT0ZFkjrDl",

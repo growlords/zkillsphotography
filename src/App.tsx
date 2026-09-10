@@ -1,185 +1,72 @@
-import React, { useEffect, useState } from 'react';
-import Lenis from 'lenis';
-import { Preloader } from './components/common/Preloader';
-import { CustomCursor } from './components/common/CustomCursor';
-import { Lightbox, LightboxData } from './components/common/Lightbox';
-import { FilmCanvas } from './components/3d/FilmCanvas';
-import { Navbar } from './components/layout/Navbar';
-import { Footer } from './components/layout/Footer';
-import { Hero } from './components/sections/Hero';
-import { BrandIntro } from './components/sections/BrandIntro';
-import { FeaturedFilms } from './components/sections/FeaturedFilms';
-import { HorizontalWork } from './components/sections/HorizontalWork';
-import { ProjectGrid } from './components/sections/ProjectGrid';
-import { Services } from './components/sections/Services';
-import { About } from './components/sections/About';
-import { Process } from './components/sections/Process';
-import { Testimonials } from './components/sections/Testimonials';
-import { BookingCTA } from './components/sections/BookingCTA';
-import { Contact } from './components/sections/Contact';
-import { FilmItem, ProjectItem, filmsList } from './data/projects';
-import { ServiceItem } from './data/services';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { SiteContentProvider } from './context/SiteContentContext';
+import { AdminAuthProvider } from './admin/context/AdminAuthContext';
+import { ToastProvider } from './admin/components/AdminToast';
+import { ProtectedRoute } from './admin/components/ProtectedRoute';
+import { AdminLayout } from './admin/components/AdminLayout';
+
+// Public Experience
+import { PublicPortfolioPage } from './pages/PublicPortfolioPage';
+
+// Admin Pages
+import { LoginPage } from './admin/pages/LoginPage';
+import { DashboardOverview } from './admin/pages/DashboardOverview';
+import { WebsiteContentEditor } from './admin/pages/WebsiteContentEditor';
+import { HeroEditor } from './admin/pages/HeroEditor';
+import { PortfolioManager } from './admin/pages/PortfolioManager';
+import { ServicesEditor } from './admin/pages/ServicesEditor';
+import { AboutEditor } from './admin/pages/AboutEditor';
+import { ProcessEditor } from './admin/pages/ProcessEditor';
+import { TestimonialsEditor } from './admin/pages/TestimonialsEditor';
+import { ContactSettings } from './admin/pages/ContactSettings';
+import { SocialSettings } from './admin/pages/SocialSettings';
+import { SeoSettings } from './admin/pages/SeoSettings';
+import { MediaLibrary } from './admin/pages/MediaLibrary';
+import { AdminSettings } from './admin/pages/AdminSettings';
 
 export const App: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-  const [lightboxData, setLightboxData] = useState<LightboxData | null>(null);
-
-  // Initialize Lenis smooth scroll
-  useEffect(() => {
-    // Respect reduced motion
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return;
-    }
-
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: 'vertical',
-      smoothWheel: true,
-    });
-
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
-
-    return () => {
-      lenis.destroy();
-    };
-  }, []);
-
-  const handleOpenBooking = () => {
-    const el = document.getElementById('contact');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleExploreWork = () => {
-    const el = document.getElementById('films');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleHeroFilmClick = () => {
-    const heroFilm = filmsList[0];
-    setLightboxData({
-      type: 'video',
-      src: heroFilm.videoSrc,
-      title: heroFilm.title,
-      category: heroFilm.category,
-      location: heroFilm.location,
-      year: heroFilm.year,
-      description: heroFilm.description,
-    });
-  };
-
-  const handleSelectFilm = (film: FilmItem) => {
-    setLightboxData({
-      type: 'video',
-      src: film.videoSrc,
-      title: film.title,
-      category: film.category,
-      location: film.location,
-      year: film.year,
-      description: film.description,
-    });
-  };
-
-  const handleSelectProject = (project: ProjectItem) => {
-    if (project.videoSrc) {
-      setLightboxData({
-        type: 'video',
-        src: project.videoSrc,
-        title: project.title,
-        category: project.category,
-        location: project.location,
-        year: project.year,
-        description: project.description,
-      });
-    } else {
-      setLightboxData({
-        type: 'image',
-        src: project.coverImage,
-        gallery: project.gallery,
-        title: project.title,
-        category: project.category,
-        location: project.location,
-        year: project.year,
-        description: project.description,
-      });
-    }
-  };
-
-  const handleSelectService = (service: ServiceItem) => {
-    if (service.bgVideo) {
-      setLightboxData({
-        type: 'video',
-        src: service.bgVideo,
-        title: service.title,
-        category: "Service Showcase",
-        description: service.description,
-      });
-    } else {
-      handleOpenBooking();
-    }
-  };
-
   return (
-    <div className="relative min-h-screen bg-[#F5F2EA] text-[#171614] overflow-x-hidden">
-      {/* Cinematic Film Grain Overlay */}
-      <div className="film-grain" aria-hidden="true" />
+    <BrowserRouter>
+      <SiteContentProvider>
+        <AdminAuthProvider>
+          <ToastProvider>
+            <Routes>
+              {/* Admin Login Route */}
+              <Route path="/admin/login" element={<LoginPage />} />
 
-      {/* Interactive Desktop Custom Cursor */}
-      <CustomCursor />
+              {/* Protected Admin Console Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<DashboardOverview />} />
+                <Route path="content" element={<WebsiteContentEditor />} />
+                <Route path="hero" element={<HeroEditor />} />
+                <Route path="portfolio" element={<PortfolioManager />} />
+                <Route path="services" element={<ServicesEditor />} />
+                <Route path="about" element={<AboutEditor />} />
+                <Route path="process" element={<ProcessEditor />} />
+                <Route path="testimonials" element={<TestimonialsEditor />} />
+                <Route path="contact" element={<ContactSettings />} />
+                <Route path="social" element={<SocialSettings />} />
+                <Route path="seo" element={<SeoSettings />} />
+                <Route path="media" element={<MediaLibrary />} />
+                <Route path="settings" element={<AdminSettings />} />
+                <Route path="*" element={<Navigate to="/admin" replace />} />
+              </Route>
 
-      {/* Subtle Three.js Cinematic Dust / Lights */}
-      <FilmCanvas />
-
-      {/* Cinematic Preloader */}
-      {loading && <Preloader onComplete={() => setLoading(false)} />}
-
-      {/* Lightbox Modal */}
-      <Lightbox data={lightboxData} onClose={() => setLightboxData(null)} />
-
-      {/* Top Navbar */}
-      <Navbar onOpenBooking={handleOpenBooking} />
-
-      {/* Main Page Flow */}
-      <main>
-        <Hero
-          onExploreClick={handleExploreWork}
-          onContactClick={handleOpenBooking}
-          onPlayFilm={handleHeroFilmClick}
-        />
-
-        <BrandIntro />
-
-        <FeaturedFilms onSelectFilm={handleSelectFilm} />
-
-        <HorizontalWork onSelectProject={handleSelectProject} />
-
-        <ProjectGrid onSelectProject={handleSelectProject} />
-
-        <Services onSelectService={handleSelectService} />
-
-        <About />
-
-        <Process />
-
-        <Testimonials />
-
-        <BookingCTA onStartStoryClick={handleOpenBooking} />
-
-        <Contact />
-      </main>
-
-      {/* Footer */}
-      <Footer />
-    </div>
+              {/* Public Portfolio Website */}
+              <Route path="/*" element={<PublicPortfolioPage />} />
+            </Routes>
+          </ToastProvider>
+        </AdminAuthProvider>
+      </SiteContentProvider>
+    </BrowserRouter>
   );
 };
 
