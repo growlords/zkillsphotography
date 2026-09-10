@@ -6,12 +6,13 @@
 const BUCKET = process.env.KVDB_BUCKET || 'AybQTUpEeH2rQaAP1VYCjM';
 const BASE_URL = `https://kvdb.io/${BUCKET}`;
 
-const CACHE_TTL_MS = 2500; // 2.5 seconds cache TTL
+const CACHE_TTL_MS = 2000; // 2 seconds cache TTL
 
 let memoryCache = {
   content: null,
+  contentFetchedAt: 0,
   projects: null,
-  lastFetchedAt: 0,
+  projectsFetchedAt: 0,
 };
 
 /**
@@ -36,7 +37,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 4000) {
  */
 export async function getCloudContent(forceFresh = false) {
   const now = Date.now();
-  if (!forceFresh && memoryCache.content && (now - memoryCache.lastFetchedAt < CACHE_TTL_MS)) {
+  if (!forceFresh && memoryCache.content && (now - memoryCache.contentFetchedAt < CACHE_TTL_MS)) {
     return memoryCache.content;
   }
 
@@ -48,7 +49,7 @@ export async function getCloudContent(forceFresh = false) {
       const parsed = await res.json();
       if (parsed && typeof parsed === 'object') {
         memoryCache.content = parsed;
-        memoryCache.lastFetchedAt = now;
+        memoryCache.contentFetchedAt = now;
         return parsed;
       }
     }
@@ -64,12 +65,12 @@ export async function getCloudContent(forceFresh = false) {
  */
 export async function saveCloudContent(updatedContent) {
   memoryCache.content = updatedContent;
-  memoryCache.lastFetchedAt = Date.now();
+  memoryCache.contentFetchedAt = Date.now();
 
   try {
     const res = await fetchWithTimeout(`${BASE_URL}/site_content`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(updatedContent),
     });
     if (!res.ok) {
@@ -87,7 +88,7 @@ export async function saveCloudContent(updatedContent) {
  */
 export async function getCloudProjects(forceFresh = false) {
   const now = Date.now();
-  if (!forceFresh && memoryCache.projects && (now - memoryCache.lastFetchedAt < CACHE_TTL_MS)) {
+  if (!forceFresh && memoryCache.projects && (now - memoryCache.projectsFetchedAt < CACHE_TTL_MS)) {
     return memoryCache.projects;
   }
 
@@ -99,7 +100,7 @@ export async function getCloudProjects(forceFresh = false) {
       const parsed = await res.json();
       if (Array.isArray(parsed)) {
         memoryCache.projects = parsed;
-        memoryCache.lastFetchedAt = now;
+        memoryCache.projectsFetchedAt = now;
         return parsed;
       }
     }
@@ -115,12 +116,12 @@ export async function getCloudProjects(forceFresh = false) {
  */
 export async function saveCloudProjects(projectsArray) {
   memoryCache.projects = projectsArray;
-  memoryCache.lastFetchedAt = Date.now();
+  memoryCache.projectsFetchedAt = Date.now();
 
   try {
     const res = await fetchWithTimeout(`${BASE_URL}/portfolio_projects`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(projectsArray),
     });
     if (!res.ok) {
