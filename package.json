@@ -3,6 +3,9 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "concurrently -k -p \"[{name}]\" -n \"API,VITE\" -c \"cyan.bold,magenta.bold\" \"node server/index.mjs\" \"vite\"",
     "server": "node server/index.mjs",

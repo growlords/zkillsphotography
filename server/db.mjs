@@ -3,9 +3,17 @@ import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 
-const DATA_DIR = path.resolve(process.cwd(), 'data');
+const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const DATA_DIR = isVercel
+  ? path.resolve('/tmp', 'data')
+  : path.resolve(process.cwd(), 'data');
+
 if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  } catch (err) {
+    console.warn('[DB] Directory warning:', err.message);
+  }
 }
 
 const DB_PATH = path.join(DATA_DIR, 'zskills.db');
