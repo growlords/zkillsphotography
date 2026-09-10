@@ -15,12 +15,15 @@ if (!fs.existsSync(DATA_DIR)) {
   }
 }
 
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 const DB_PATH = path.join(DATA_DIR, 'zskills.db');
 
-// Attempt to load native node:sqlite
+// Attempt to load native node:sqlite synchronously
 let nativeSqlite = null;
 try {
-  const mod = await import('node:sqlite');
+  const mod = require('node:sqlite');
   if (mod && mod.DatabaseSync) {
     nativeSqlite = new mod.DatabaseSync(DB_PATH);
     nativeSqlite.exec('PRAGMA journal_mode = WAL;');
